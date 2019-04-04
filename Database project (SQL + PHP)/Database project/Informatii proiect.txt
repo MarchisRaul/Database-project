@@ -1,0 +1,5 @@
+Fisierul SQL "colocviufinal" este cel care se downloadeaza in urma export-ului de pe site-ul localhost, dupa ce
+a fost terminat proiectul.
+Fisierul SQL "colFinal" contine tabelele / inserarile / constraint-urile si procedurile stocate.
+Pozele .jpg si .png sunt pentru a putea incarca fotografii pe pagina html.
+Restul reprezinta toate fisierele .php si .html creeate pentru proiect.

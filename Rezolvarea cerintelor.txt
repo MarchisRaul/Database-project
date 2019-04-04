@@ -1,0 +1,290 @@
+-- Subiectul 11
+-- Marchis Raul, Grupa 30229
+
+DROP TABLE Chitanta;
+DROP TABLE Consum;
+DROP TABLE Apartament;
+DROP TABLE Proprietar;
+DROP TABLE Tarif;
+DROP VIEW Consum_Ap_Turda;
+
+--11.01
+--a)
+CREATE TABLE Proprietar
+(id_proprietar NUMBER(3) PRIMARY KEY,
+nume VARCHAR2(30),
+email VARCHAR2(30));
+
+
+--b)
+CREATE TABLE Apartament
+(id_apartament NUMBER(3) PRIMARY KEY,
+adresa VARCHAR2(50),
+nr_apartament NUMBER(3),
+suprafata NUMBER(3),
+id_proprietar NUMBER(3) REFERENCES Proprietar(id_proprietar));
+
+
+--c)
+CREATE TABLE Consum
+(id_apartament NUMBER(3) REFERENCES Apartament(id_apartament),
+an NUMBER(4),
+luna NUMBER(3),
+nr_persoane NUMBER(4),
+cantitate NUMBER(10), 
+valoare NUMBER(10),
+pret_apa NUMBER(10),
+PRIMARY KEY(id_apartament, an, luna));
+
+
+--d)
+CREATE TABLE Chitanta
+(numar NUMBER(3) PRIMARY KEY,
+data DATE ,
+id_apartament NUMBER(3) REFERENCES Apartament(id_apartament), 
+valoare NUMBER(10, 2));
+
+
+--f)
+ALTER TABLE Proprietar
+ADD telefon VARCHAR2(10);
+
+
+--11.02
+--a)
+ ALTER TABLE Consum ADD CONSTRAINT CK_an CHECK (AN >= 2017 AND AN <=2019);
+--b) 
+ ALTER TABLE Consum ADD CONSTRAINT CK_cantitate CHECK ((cantitate = 0 AND nr_persoane = 0) OR (cantitate != 0));
+
+
+INSERT INTO Proprietar(id_proprietar, nume, email, telefon)
+VALUES (1, 'Raul Marchis', 'dan_mar_chis@yahoo.com', '0746263614');
+INSERT INTO Proprietar(id_proprietar, nume, email, telefon)
+VALUES (2, 'Florea Ronaldo', 'ronnydflorea@gmail.com', '0758393921');
+INSERT INTO Proprietar(id_proprietar, nume, email, telefon)
+VALUES (3, 'Neagoe Adrian Denis', 'adineagoe@gmail.com', '0757854672');
+INSERT INTO Proprietar(id_proprietar, nume, email, telefon)
+VALUES (5, 'Borz Tina Adelina', 'tinaadelina@yahoo.com', '0755611980');
+INSERT INTO Proprietar(id_proprietar, nume, email, telefon)
+VALUES (6, 'Hura Abel Jonathan', 'huraabel@yahoo.com', '0755263614');
+
+INSERT INTO Apartament(id_apartament, adresa, nr_apartament, suprafata, id_proprietar)
+VALUES(1, 'Turda Baita 17', 6, 70, 1);
+INSERT INTO Apartament(id_apartament, adresa, nr_apartament, suprafata, id_proprietar)
+VALUES(2, 'Turda Baita 20', 15, 55, 2);
+INSERT INTO Apartament(id_apartament, adresa, nr_apartament, suprafata, id_proprietar)
+VALUES(3, 'Turda Baita 17', 1, 72, 1);
+INSERT INTO Apartament(id_apartament, adresa, nr_apartament, suprafata, id_proprietar)
+VALUES(111, 'Turda Baita 30', 51, 63, 5);
+INSERT INTO Apartament(id_apartament, adresa, nr_apartament, suprafata, id_proprietar)
+VALUES(5, 'Turda Baita 99', 140, 90, 6);
+INSERT INTO Apartament(id_apartament, adresa, nr_apartament, suprafata, id_proprietar)
+VALUES(6, 'Turda Baita 100', 125, 60, 3);
+
+INSERT INTO CONSUM(id_apartament, an, luna, nr_persoane, cantitate, valoare, pret_apa)
+VALUES(1, 2018, 8, 3, 100, 130, 20);
+INSERT INTO CONSUM(id_apartament, an, luna, nr_persoane, cantitate, valoare, pret_apa)
+VALUES(3, 2019, 2, 5, 150, 180, 20);
+INSERT INTO CONSUM(id_apartament, an, luna, nr_persoane, cantitate, valoare, pret_apa)
+VALUES(2, 2018, 8, 5, 150, 120, 20);
+INSERT INTO CONSUM(id_apartament, an, luna, nr_persoane, pret_apa)
+VALUES(111, 2018, 8, 2, 20);
+INSERT INTO CONSUM(id_apartament, an, luna, nr_persoane, cantitate, valoare, pret_apa)
+VALUES(5, 2018, 6, 3, 150, 200, 15);
+INSERT INTO CONSUM(id_apartament, an, luna, nr_persoane, cantitate, valoare, pret_apa)
+VALUES(6, 2019, 7, 2, 120, 210, 20);
+
+INSERT INTO Chitanta(numar, data, id_apartament, valoare)
+VALUES(1, date '2017-09-21', 1, 120);
+INSERT INTO Chitanta(numar, data, id_apartament, valoare)
+VALUES(2, date '2019-05-18', 3, 60);
+
+--11.03
+--a)
+SELECT NUME AS "Nume", EMAIL AS "Email"
+FROM Proprietar
+WHERE EMAIL LIKE '%yahoo%'
+ORDER BY NUME;
+--b) 
+SELECT *
+FROM Apartament
+WHERE SUPRAFATA BETWEEN 60 AND 80
+ORDER BY ADRESA DESC;
+
+--11.04
+--a) 
+SELECT ap1.id_apartament AS "ID apartament 1", ap2.id_apartament AS  "ID apartament 2", ap1.ID_PROPRIETAR
+FROM Apartament ap1 JOIN Apartament ap2
+ON (ap1.id_proprietar = ap2.id_proprietar)
+WHERE ap1.id_apartament < ap2.id_apartament;	
+--b) 
+SELECT ap.ADRESA, ap.NR_APARTAMENT, ap.ID_PROPRIETAR, c.VALOARE
+FROM Apartament ap JOIN Consum c
+ON (ap.ID_APARTAMENT = c.ID_APARTAMENT)
+WHERE ap.ADRESA = 'Turda Baita 17' AND c.AN = 2018 AND c.LUNA = 8;
+
+--11.05
+--a) 
+SELECT ap.Adresa, c.ID_APARTAMENT, c.LUNA
+FROM Apartament ap JOIN Consum c
+ON ap.ID_APARTAMENT = c.ID_APARTAMENT 
+WHERE c.AN = 2018 AND NVL(c.VALOARE, 0) >= ALL(SELECT NVL(VALOARE, 0) FROM Consum WHERE AN = 2018);
+--b) 
+SELECT DISTINCT p.NUME
+FROM Proprietar p JOIN Apartament a
+ON p.id_proprietar = a.id_proprietar
+WHERE EXISTS(SELECT * 
+FROM Apartament b 
+WHERE a.id_apartament != b.id_apartament AND a.id_proprietar = b.id_proprietar);
+
+--11.06
+--a) 
+SELECT AN, ID_APARTAMENT, AVG(CANTITATE)
+FROM Consum
+GROUP BY ID_APARTAMENT, AN;
+
+--b) 
+SELECT p.nume
+FROM Proprietar p JOIN Apartament a ON p.id_proprietar=a.id_proprietar 
+WHERE (SELECT SUM(valoare) FROM chitanta WHERE chitanta.id_apartament = a.id_apartament AND chitanta.data <= TO_DATE('21-Sep-2018')) < (SELECT SUM(valoare) FROM consum WHERE consum.id_apartament = a.id_apartament AND consum.an <= 2018 AND consum.luna<=09);
+
+--11.07
+--a) 
+INSERT INTO Proprietar(ID_PROPRIETAR, NUME, EMAIL, TELEFON)
+VALUES(4, 'Martin Darius', 'dariusmartin@gmail.com', '0746293940');
+INSERT INTO Apartament(ID_APARTAMENT, ADRESA, NR_APARTAMENT, SUPRAFATA, ID_PROPRIETAR)
+VALUES(4, 'Turda Baita 25', 22, 35, 4);
+
+INSERT INTO Consum(ID_APARTAMENT, AN, LUNA, NR_PERSOANE, CANTITATE, VALOARE, PRET_APA)
+VALUES(4, 2018, 9, 3, 23, 150, 20);
+INSERT INTO Chitanta(NUMAR, DATA, ID_APARTAMENT, VALOARE)
+VALUES(14, '01-OCT-2018', 4, 150); 
+
+--b) 
+DELETE FROM Consum
+WHERE NVL(CANTITATE, 0) = 0;
+
+--c) 
+UPDATE Consum SET NR_PERSOANE = 1, VALOARE = 75
+WHERE ID_APARTAMENT = 111 AND AN = 2018 AND (LUNA = 8 OR LUNA = 9);
+
+
+--11.08
+--a) 
+INSERT INTO Proprietar(id_proprietar, nume, email, telefon)
+VALUES (7, 'Pop Danut', 'popdanut@gmail.com', '0746783299');
+
+INSERT INTO Apartament(id_apartament, adresa, nr_apartament, suprafata, id_proprietar)
+VALUES(7, 'Turda Baita 44', 49, 50, 7);
+
+
+
+CREATE TABLE Tarif(
+ceva NUMBER(2),
+altceva NUMBER(2));
+
+INSERT INTO Tarif(ceva, altceva)
+VALUES(2,3);
+
+
+
+CREATE OR REPLACE TRIGGER modif_val_trig
+BEFORE INSERT ON Consum FOR EACH ROW
+DECLARE
+var1 Tarif.ceva%TYPE;
+var2 Tarif.altceva%TYPE;
+valoaretemp Consum.valoare%TYPE;
+
+BEGIN
+SELECT Tarif.ceva, Tarif.altceva
+INTO var1, var2
+FROM Tarif
+WHERE Tarif.ceva = 2;
+
+valoaretemp := (:NEW.NR_PERSOANE*var1)+(:NEW.CANTITATE*var2);
+
+:NEW.VALOARE := valoaretemp;
+END;
+
+
+
+INSERT INTO Consum(ID_APARTAMENT, AN, LUNA, NR_PERSOANE, CANTITATE, VALOARE, PRET_APA)
+VALUES(7, 2019, 10, 2, 4, 1, 20);
+
+
+
+SELECT *
+FROM Consum;
+
+
+--b) 
+CREATE OR REPLACE TRIGGER check_modif_consum
+BEFORE UPDATE OF cantitate ON Consum
+FOR EACH ROW
+
+DECLARE
+counter INTEGER;
+
+BEGIN
+SELECT COUNT(*) INTO counter
+FROM Chitanta
+WHERE (EXTRACT(YEAR FROM data)>=:NEW.AN AND EXTRACT(MONTH FROM data)>:NEW.LUNA AND ID_APARTAMENT=:NEW.ID_APARTAMENT); 
+
+IF counter!=0
+THEN RAISE_APPLICATION_ERROR(-20202, 'Nu se poate face update, aveti o chitanta cu o data ulterioara!');
+END IF; 
+END;
+
+
+
+
+
+UPDATE Consum
+SET CANTITATE = 1
+WHERE ID_APARTAMENT = 3;
+
+-- => va da eroare, intrucat in tabela Chitanta, id_apartament 3 are o chitanta in data de 18 Mai 2019, care e ulterioara datei unde vrem sa facem update : Februarie 2019.
+
+
+--c) 
+CREATE VIEW Consum_Ap_Turda AS
+SELECT nume, email, adresa, nr_apartament, suprafata, an, luna, nr_persoane, cantitate,
+valoare
+FROM Proprietar NATURAL JOIN Apartament NATURAL JOIN Consum
+WHERE adresa LIKE 'Turda%';
+
+
+
+CREATE OR REPLACE TRIGGER view_trig
+INSTEAD OF INSERT ON Consum_Ap_Turda
+DECLARE
+v_id_proprietar Proprietar.id_proprietar%TYPE;
+v_id_apartament Apartament.id_apartament%TYPE;
+
+BEGIN
+SELECT MAX(id_proprietar)
+INTO v_id_proprietar
+FROM Proprietar;
+SELECT MAX(id_apartament)
+INTO v_id_apartament
+FROM Apartament WHERE id_apartament != 111;
+v_id_proprietar := v_id_proprietar + 1;
+v_id_apartament := v_id_apartament + 1;
+
+INSERT INTO Proprietar(id_proprietar, nume, email)
+VALUES(v_id_proprietar, :NEW.nume, :NEW.email);
+INSERT INTO Apartament
+VALUES(v_id_apartament, :NEW.adresa, :NEW.nr_apartament, :NEW.suprafata, v_id_proprietar);
+INSERT INTO Consum
+VALUES(v_id_apartament, :NEW.an, :NEW.luna, :NEW.nr_persoane, :NEW.cantitate, :NEW.valoare, 20);
+END;
+
+
+INSERT INTO Consum_Ap_Turda
+VALUES('Marius', 'mariuspop@yahoo.com', 'Baritiu 21',5 , 50, 2019, 08, 1, 100, 20);
+
+
+
+
+
+
